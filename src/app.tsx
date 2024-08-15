@@ -101,7 +101,7 @@ export function App() {
         <br />
         {events.length > 0 && (
           <div style={{ marginTop: '20px' }}>
-            <h2>Events:</h2>
+            <h2>Events</h2>
             <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
               {events.join('\n')}
             </pre>

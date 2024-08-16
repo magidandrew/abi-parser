@@ -53,7 +53,7 @@ export function App() {
   }
 
   const handleGetAbi = async () => {
-    const response = await fetch(`https://${explorer}/api/v2/smart-contracts/${address}`, getHeaders());
+    const response = await fetch(`https://${explorer}.blockscout.com/api/v2/smart-contracts/${address}`, getHeaders());
     console.log("fetched contract")
     const data = await response.json();
     const abi = JSON.stringify(data.abi);
@@ -65,13 +65,13 @@ export function App() {
   }
 
   const handleGetTokens = async () => {
-    const response = await fetch(`https://${explorer}/api/v2/smart-contracts/${address}/methods-read`, getHeaders())
+    const response = await fetch(`https://${explorer}.blockscout.com/api/v2/smart-contracts/${address}/methods-read`, getHeaders())
     console.log("fetched methods")
     const data = await response.json();
     const filteredQueries = data.filter((item: any) => ((item.name as string).toLowerCase().startsWith('token')));
     const tokens = filteredQueries.map((item: any) => ({ "name": item.name, "address": item.outputs[0].value }));
     const tokensPlus = await Promise.all(tokens.map(async (token: any) => {
-      const tokenMetadata = await fetch(`https://${explorer}/api/v2/tokens/${token.address}`, getHeaders());
+      const tokenMetadata = await fetch(`https://${explorer}.blockscout.com/api/v2/tokens/${token.address}`, getHeaders());
       const tokenData = await tokenMetadata.json();
       const final = { ...token, decimals: tokenData.decimals, symbol: tokenData.symbol, explorer_name: tokenData.name, holders: tokenData.holders, type: tokenData.type };
       return final;
@@ -84,7 +84,7 @@ export function App() {
     <>
       <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
         <h1>ABI Event Parser</h1>
-        <input placeholder={"explorer domain"} style={{ fontFamily: "monospace" }}
+        <input placeholder={"blockscout subdomain..."} style={{ fontFamily: "monospace" }}
           onInput={(e: Event): void => {
             setExplorer((e.target as HTMLInputElement).value);
           }}
@@ -134,7 +134,7 @@ export function App() {
                 <div key={token.address}>
                   <p style={{ fontFamily: 'monospace' }}>{token.name}:{' '}
                     <a
-                      href={`https://${explorer}/token/${token.address}`}
+                      href={`https://${explorer}.blockscout.com/token/${token.address}`}
                       target="_blank"
                     >
                       {token.address}

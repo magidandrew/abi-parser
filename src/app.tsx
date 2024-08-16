@@ -20,6 +20,7 @@ export function App() {
   const [address, setAddress] = useState<string>('');
   const [events, setEvents] = useState<string[]>([]);
   const [tokens, setTokens] = useState<any[]>([]);
+  const [apiKey, setApiKey] = useState<string>("");
 
   const parseABI = (abi: string): string[] => {
     try {
@@ -43,8 +44,17 @@ export function App() {
     setEvents(parsedEvents);
   };
 
+  const getHeaders = (): any => {
+    if (apiKey === "") {
+      return {}
+    } else {
+      return { "Authorization": `Bearer ${apiKey}` }
+    }
+  }
+
   const handleGetAbi = async () => {
-    const response = await fetch(`https://${explorer}/api/v2/smart-contracts/${address}`);
+    const response = await fetch(`https://${explorer}/api/v2/smart-contracts/${address}`, getHeaders());
+    console.log("fetched contract")
     const data = await response.json();
     const abi = JSON.stringify(data.abi);
     const parsedEvents = parseABI(abi);
@@ -55,16 +65,18 @@ export function App() {
   }
 
   const handleGetTokens = async () => {
-    const response = await fetch(`https://${explorer}/api/v2/smart-contracts/${address}/methods-read`)
+    const response = await fetch(`https://${explorer}/api/v2/smart-contracts/${address}/methods-read`, getHeaders())
+    console.log("fetched methods")
     const data = await response.json();
     const filteredQueries = data.filter((item: any) => ((item.name as string).toLowerCase().startsWith('token')));
     const tokens = filteredQueries.map((item: any) => ({ "name": item.name, "address": item.outputs[0].value }));
     const tokensPlus = await Promise.all(tokens.map(async (token: any) => {
-      const tokenMetadata = await fetch(`https://${explorer}/api/v2/tokens/${token.address}`);
+      const tokenMetadata = await fetch(`https://${explorer}/api/v2/tokens/${token.address}`, getHeaders());
       const tokenData = await tokenMetadata.json();
       const final = { ...token, decimals: tokenData.decimals, symbol: tokenData.symbol, explorer_name: tokenData.name, holders: tokenData.holders, type: tokenData.type };
       return final;
     }));
+    console.log("fetched tokens");
     return tokensPlus;
   }
 
@@ -90,6 +102,12 @@ export function App() {
         <input placeholder={"Chain..."} style={{ fontFamily: "monospace" }}
           onInput={(e: Event): void => {
             setChain((e.target as HTMLInputElement).value);
+          }}
+        />
+        <br />
+        <input placeholder={"Api Key..."} style={{ fontFamily: "monospace" }}
+          onInput={(e: Event): void => {
+            setApiKey((e.target as HTMLInputElement).value);
           }}
         />
         <textarea
